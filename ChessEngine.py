@@ -18,11 +18,20 @@ class GameState():
             ["wR","wN","wB","wQ","wK","wB","wN","wR"]]
         self.whitetomove = True
         self.moveLog = []
+    """Takes move as parameter and executes it, will not work for enpassant,castling,pawn promotion"""
     def makeMove(self,move):
         self.board[move.endRow][move.endCol] = move.pieceMoved
         self.board[move.startRow][move.startCol] = "--"
         self.moveLog.append(move)#log the move so we can undo it later
         self.whitetomove = not self.whitetomove #swap players
+    
+    """Undo the last move"""
+    def undoMove(self):
+        if self.moveLog:#make sure moveLog is not empty
+            lastMove = self.moveLog.pop()
+            self.board[lastMove.startRow][lastMove.startCol] = lastMove.pieceMoved
+            self.board[lastMove.endRow][lastMove.endCol] = lastMove.pieceCaptured
+            self.whitetomove = not self.whitetomove
 
 class Move():
     #map keys to values
@@ -44,5 +53,5 @@ class Move():
     def getChessNotation(self):
         return self.getRankFile(self.startRow, self.startCol) + self.getRankFile(self.endRow, self.endCol)
 
-    def getRankFile(self, row, col):
+    def getRankFile(self,row,col):
         return self.colsToFiles[col] + self.rowsToRanks[row]
