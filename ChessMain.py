@@ -15,7 +15,7 @@ IMAGES = {}
 def loadImages():
     pieces = ["wP","wR","wN","wB","wQ","wK","bP","bR","bN","bB","bQ","bK"]
     for piece in pieces:
-        IMAGES[piece] = p.transform.scale(p.image.load("images/"+piece+".png"),(SQ_SIZE,SQ_SIZE))
+        IMAGES[piece] = p.transform.scale(p.image.load("chessimages/"+piece+".png"),(SQ_SIZE,SQ_SIZE))
     #we can access an IMAGE by saying  IMAGES["wP"]
 
 """ Handle user input and update the graphics"""
@@ -32,6 +32,7 @@ def main():
         for e in p.event.get():
             if e.type== p.QUIT:
                 running = False
+        drawGameState(screen,gs)
         clock.tick(MAX_FPS)
         p.display.flip()
 
@@ -44,7 +45,7 @@ def drawGameState(screen,gs):
 
 """Draw the squares on the board. The top left corner is always light"""
 def drawBoard(screen):
-    colors = [p.Color("light gray"),p.Color("dark green")]
+    colors = [p.Color("light gray"),p.Color("brown")]
     for r in range(DIMENSION):
         for c in range(DIMENSION):
             color = colors[((r+c)%2)]
@@ -53,7 +54,11 @@ def drawBoard(screen):
 
 """Draw the pieces on the board using the current GameState.board"""
 def drawPieces(screen,board):
-     pass
+     for r in range(DIMENSION):
+         for c in range(DIMENSION):
+             piece = board[r][c]
+             if piece !="--":
+                 screen.blit(IMAGES[piece],p.Rect(c*SQ_SIZE,r*SQ_SIZE,SQ_SIZE,SQ_SIZE))
 
 
 if __name__ == "__main__":
