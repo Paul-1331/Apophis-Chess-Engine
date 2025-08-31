@@ -20,12 +20,19 @@ class GameState():
         self.moveLog = []
         self.whiteKingLocation = (7,4)
         self.blackKingLocation = (0,4)
+        self.checkmate = False
+        self.stalemate = False
     """Takes move as parameter and executes it, will not work for enpassant,castling,pawn promotion"""
     def makeMove(self,move):
         self.board[move.endRow][move.endCol] = move.pieceMoved
         self.board[move.startRow][move.startCol] = "--"
         self.moveLog.append(move)#log the move so we can undo it later
         self.whitetomove = not self.whitetomove #swap players
+        #update King Location
+        if move.pieceMoved == "wK":
+            self.whiteKingLocation = (move.endRow,move.endCol)
+        elif move.pieceMoved == "bK":
+            self.blackKingLocation = (move.endRow,move.endCol)
     
     """Undo the last move"""
     def undoMove(self):
@@ -34,9 +41,49 @@ class GameState():
             self.board[lastMove.startRow][lastMove.startCol] = lastMove.pieceMoved
             self.board[lastMove.endRow][lastMove.endCol] = lastMove.pieceCaptured
             self.whitetomove = not self.whitetomove
+            if lastMove.pieceMoved == "wK":
+                self.whiteKingLocation = (lastMove.startRow,lastMove.startCol)
+            elif lastMove.pieceMoved == "bK":
+                self.blackKingLocation = (lastMove.startRow,lastMove.startCol)
 
     def getValidMoves(self):
-        return self.getAllPossibleMoves() #we dont worry about checks now
+        moves =  self.getAllPossibleMoves()
+
+        for i in range(len(moves)-1,-1,-1):
+            """ For each of my moves, check if any of opponents moves attack my king"""
+            self.makeMove(moves[i])#we make a move, now it is opponents turn, and we need to check if now our king is under attack
+            self.whitetomove = not self.whitetomove #this is so that we are checking if our king is in check, not the opponents king
+            if self.inCheck():
+                moves.remove(moves[i])
+            self.whitetomove = not self.whitetomove #change back to their move
+            self.undoMove() #take back move and change back to our move
+        if len(moves) == 0:
+            if self.inCheck():
+                self.checkmate = True
+            else:
+                self.stalemate = True
+        else:
+            self.checkmate = False
+            self.stalemate = False
+
+        return moves
+
+
+    def inCheck(self):
+        if self.whitetomove:
+            return self.squareUnderAttack(self.whiteKingLocation[0],self.whiteKingLocation[1])
+        else:
+            return self.squareUnderAttack(self.blackKingLocation[0],self.blackKingLocation[1])
+        
+    
+    def squareUnderAttack(self,r,c):
+        self.whitetomove = not self.whitetomove #switch to other player temporarily
+        oppMoves = self.getAllPossibleMoves()
+        self.whitetomove = not self.whitetomove #switch back
+        for move in oppMoves:
+            if move.endRow == r and move.endCol == c:
+                return True
+        return False
 
     def getAllPossibleMoves(self):
         moves = []
