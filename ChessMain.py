@@ -25,7 +25,8 @@ def main():
     clock = p.time.Clock()
     screen.fill(p.Color("white"))
     gs = ChessEngine.GameState()
-    #print(gs.board)
+    validMoves = gs.getValidMoves()
+    moveMade = False #flag variable for when a move is made,we should regenerate valid moves only after user makes a move
     loadImages()#only do this once before the while loop
     running = True
     sqSelected = ()#no square is selected, keep track of last click of the user(tuple (row,col))
@@ -45,15 +46,22 @@ def main():
                     sqSelected = (row,col)
                     playerClicks.append(sqSelected)#append for both first and second clicks
                 if len(playerClicks)==2:#after 2nd click
-                    if gs.board[playerClicks[0][0]][playerClicks[0][1]] != "--":
-                        move = ChessEngine.Move(playerClicks[0],playerClicks[1],gs.board)
-                        print(move.getChessNotation())
+                    move = ChessEngine.Move(playerClicks[0],playerClicks[1],gs.board)
+                    if move in validMoves:
                         gs.makeMove(move)
-                    sqSelected = ()#reset user clicks
-                    playerClicks = []
+                        moveMade = True
+                        print(move.getChessNotation())
+                        sqSelected = ()#reset user clicks
+                        playerClicks = []
+                    else:
+                        playerClicks = [sqSelected]
             elif e.type == p.KEYDOWN:
                 if e.key == p.K_z:
                     gs.undoMove()
+                    moveMade = True
+        if moveMade:
+            validMoves = gs.getValidMoves()
+            moveMade = False
         drawGameState(screen,gs)
         clock.tick(MAX_FPS)
         p.display.flip()
