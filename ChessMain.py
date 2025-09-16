@@ -47,16 +47,17 @@ def main():
                     playerClicks.append(sqSelected)#append for both first and second clicks
                 if len(playerClicks)==2:#after 2nd click
                     move = ChessEngine.Move(playerClicks[0],playerClicks[1],gs.board)
-                    if move in validMoves:
-                        gs.makeMove(move)
-                        moveMade = True
-                        print(move.getChessNotation())
-                        sqSelected = ()#reset user clicks
-                        playerClicks = []
-                    else:
+                    for i in range(len(validMoves)):
+                        if move == validMoves[i]:
+                            gs.makeMove(validMoves[i])
+                            moveMade = True
+                            print(move.getChessNotation())
+                            sqSelected = ()#reset user clicks
+                            playerClicks = []
+                    if not moveMade:
                         playerClicks = [sqSelected]
             elif e.type == p.KEYDOWN:
-                if e.key == p.K_z:
+                if e.key == p.K_z: #undo when z is pressed
                     gs.undoMove()
                     moveMade = True
         if moveMade:
@@ -100,7 +101,7 @@ def drawPieces(screen,board):
 
 def drawEndGameText(screen, text):
     font = p.font.SysFont("Arial", 36, True, False)
-    textObject = font.render(text, 0, p.Color('Red'))
+    textObject = font.render(text, 0, p.Color('Blue'))
     textLocation = p.Rect(0, 0, WIDTH, HEIGHT).move(WIDTH//2 - textObject.get_width()//2, HEIGHT//2 - textObject.get_height()//2)
     screen.blit(textObject, textLocation)
 
