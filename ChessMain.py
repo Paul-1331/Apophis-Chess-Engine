@@ -68,10 +68,18 @@ def main():
 
 """ Responsible for all the graphics within a current game state"""
 
-def drawGameState(screen,gs):
-    drawBoard(screen)#draw squares on the board
+def drawGameState(screen, gs):
+    drawBoard(screen)  # draw squares on the board
     #add in pieces highlighting or move suggestions(later)
-    drawPieces(screen,gs.board)#draw pieces on top of those squares
+    drawPieces(screen, gs.board)  # draw pieces on top of those squares
+    # Show checkmate/stalemate message
+    if gs.checkmate:
+        if gs.whitetomove:
+            drawEndGameText(screen, "Black wins by checkmate!")
+        else:
+            drawEndGameText(screen, "White wins by checkmate!")
+    elif gs.stalemate:
+        drawEndGameText(screen, "Stalemate!")
 
 """Draw the squares on the board. The top left corner is always light"""
 def drawBoard(screen):
@@ -89,6 +97,12 @@ def drawPieces(screen,board):
              piece = board[r][c]
              if piece !="--":
                  screen.blit(IMAGES[piece],p.Rect(c*SQ_SIZE,r*SQ_SIZE,SQ_SIZE,SQ_SIZE))
+
+def drawEndGameText(screen, text):
+    font = p.font.SysFont("Arial", 36, True, False)
+    textObject = font.render(text, 0, p.Color('Red'))
+    textLocation = p.Rect(0, 0, WIDTH, HEIGHT).move(WIDTH//2 - textObject.get_width()//2, HEIGHT//2 - textObject.get_height()//2)
+    screen.blit(textObject, textLocation)
 
 
 if __name__ == "__main__":

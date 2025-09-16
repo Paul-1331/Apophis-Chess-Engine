@@ -76,14 +76,93 @@ class GameState():
             return self.squareUnderAttack(self.blackKingLocation[0],self.blackKingLocation[1])
         
     
-    def squareUnderAttack(self,r,c):
+    """def squareUnderAttack(self,r,c):
         self.whitetomove = not self.whitetomove #switch to other player temporarily
         oppMoves = self.getAllPossibleMoves()
         self.whitetomove = not self.whitetomove #switch back
         for move in oppMoves:
             if move.endRow == r and move.endCol == c:
                 return True
-        return False
+        return False"""
+
+    def squareUnderAttack(self, r, c):
+        """
+        Returns True if the square (r, c) is under attack by the opponent.
+        Efficiently checks for pawn, knight, bishop, rook, queen, and king attacks.
+        """
+        enemy_color = 'b' if self.whitetomove else 'w'
+        ally_color = 'w' if self.whitetomove else 'b'
+
+        # Check for pawn attacks
+        if enemy_color == 'b':
+            # Black pawns attack from above
+            if r-1 >= 0:
+                if c-1 >= 0 and self.board[r-1][c-1] == 'bP':
+                    return True
+                if c+1 < 8 and self.board[r-1][c+1] == 'bP':
+                    return True
+        else:
+            # White pawns attack from below
+            if r+1 < 8:
+                if c-1 >= 0 and self.board[r+1][c-1] == 'wP':
+                    return True
+                if c+1 < 8 and self.board[r+1][c+1] == 'wP':
+                    return True
+
+        # Check for knight attacks
+        knight_moves = [(-2, -1), (-2, 1), (-1, -2), (-1, 2),
+                        (1, -2), (1, 2), (2, -1), (2, 1)]
+        for dr, dc in knight_moves:
+            nr, nc = r + dr, c + dc
+            if 0 <= nr < 8 and 0 <= nc < 8:
+                if self.board[nr][nc] == enemy_color + 'N':
+                    return True
+
+        # Check for rook/queen attacks (straight lines)
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        for dr, dc in directions:
+            for i in range(1, 8):
+                nr, nc = r + dr * i, c + dc * i
+                if 0 <= nr < 8 and 0 <= nc < 8:
+                    piece = self.board[nr][nc]
+                    if piece == "--":
+                        continue
+                    elif piece[0] == ally_color:
+                        break
+                    elif piece[0] == enemy_color and (piece[1] == 'R' or piece[1] == 'Q'):
+                        return True
+                    else:
+                        break
+                else:
+                    break
+
+        # Check for bishop/queen attacks (diagonals)
+        directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
+        for dr, dc in directions:
+            for i in range(1, 8):
+                nr, nc = r + dr * i, c + dc * i
+                if 0 <= nr < 8 and 0 <= nc < 8:
+                    piece = self.board[nr][nc]
+                    if piece == "--":
+                        continue
+                    elif piece[0] == ally_color:
+                        break
+                    elif piece[0] == enemy_color and (piece[1] == 'B' or piece[1] == 'Q'):
+                        return True
+                    else:
+                        break
+                else:
+                    break
+
+        # Check for king attacks (adjacent squares)
+        king_moves = [(-1, -1), (-1, 0), (-1, 1),
+                      (0, -1),          (0, 1),
+                      (1, -1),  (1, 0), (1, 1)]
+        for dr, dc in king_moves:
+            nr, nc = r + dr, c + dc
+            if 0 <= nr < 8 and 0 <= nc < 8:
+                if self.board[nr][nc] == enemy_color + 'K':
+                    return True
 
     def getAllPossibleMoves(self):
         moves = []
