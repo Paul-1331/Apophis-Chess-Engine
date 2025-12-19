@@ -24,9 +24,21 @@ class GameState():
         self.stalemate = False
         self.enpassantPossible = () #coordinates for the square where enpassant capture is possible
 
+        # castling rights tracking (False = moved / lost)
+        self.whiteKingMoved = False
+        self.whiteRookAMoved = False  # rook on a1 (7,0)
+        self.whiteRookHMoved = False  # rook on h1 (7,7)
+        self.blackKingMoved = False
+        self.blackRookAMoved = False  # rook on a8 (0,0)
+        self.blackRookHMoved = False  # rook on h8 (0,7)
+
     """Takes move as parameter and executes it, will not work for enpassant,castling,pawn promotion"""
     def makeMove(self,move):
         move.enpassantPossible = self.enpassantPossible
+        move.castlingRights = (
+            self.whiteKingMoved, self.whiteRookAMoved, self.whiteRookHMoved,
+            self.blackKingMoved, self.blackRookAMoved, self.blackRookHMoved
+        )
 
         self.board[move.endRow][move.endCol] = move.pieceMoved
         self.board[move.startRow][move.startCol] = "--"
@@ -50,7 +62,54 @@ class GameState():
         else:
             self.enpassantPossible = () #reseting enpasant possible
 
-    
+        # rook moved -> update rook flags
+        # white rooks: (7,0) a1 and (7,7) h1 ; black: (0,0) a8 and (0,7) h8
+        if move.pieceMoved == 'wR':
+            if move.startRow == 7 and move.startCol == 0:
+                self.whiteRookAMoved = True
+            elif move.startRow == 7 and move.startCol == 7:
+                self.whiteRookHMoved = True
+        if move.pieceMoved == 'bR':
+            if move.startRow == 0 and move.startCol == 0:
+                self.blackRookAMoved = True
+            elif move.startRow == 0 and move.startCol == 7:
+                self.blackRookHMoved = True
+
+        # if a rook is captured on its original square, revoke castling
+        if move.pieceCaptured == 'wR':
+            if move.endRow == 7 and move.endCol == 0:
+                self.whiteRookAMoved = True
+            elif move.endRow == 7 and move.endCol == 7:
+                self.whiteRookHMoved = True
+        if move.pieceCaptured == 'bR':
+            if move.endRow == 0 and move.endCol == 0:
+                self.blackRookAMoved = True
+            elif move.endRow == 0 and move.endCol == 7:
+                self.blackRookHMoved = True
+
+        if move.pieceMoved == 'wK':
+            self.whiteKingMoved = True
+        if move.pieceMoved == 'bK':
+            self.blackKingMoved = True
+        # handle castling rook movement (king moved two squares)
+        if move.pieceMoved[1] == 'K' and abs(move.startCol - move.endCol) == 2:
+            # kingside
+            if move.endCol - move.startCol == 2:
+                # place rook to the square the king passed
+                self.board[move.endRow][move.endCol-1] = move.pieceMoved[0] + 'R'
+                self.board[move.endRow][7] = '--'
+                # mark rook moved
+                if move.pieceMoved[0] == 'w':
+                    self.whiteRookHMoved = True
+                else:
+                    self.blackRookHMoved = True
+            else: # queenside
+                self.board[move.endRow][move.endCol+1] = move.pieceMoved[0] + 'R'
+                self.board[move.endRow][0] = '--'
+                if move.pieceMoved[0] == 'w':
+                    self.whiteRookAMoved = True
+                else:
+                    self.blackRookAMoved = True
     """Undo the last move"""
     def undoMove(self):
         if self.moveLog:#make sure moveLog is not empty
@@ -67,8 +126,23 @@ class GameState():
             if lastMove.isEnpassantMove:
                 self.board[lastMove.endRow][lastMove.endCol] = '--'
                 self.board[lastMove.startRow][lastMove.endCol] = lastMove.pieceCaptured
-            self.enpassantPossible = lastMove.enpassantPossible
+            # undo castling rook move if it was a castle (king moved two squares)
+            if lastMove.pieceMoved[1] == 'K' and abs(lastMove.startCol - lastMove.endCol) == 2:
+                # kingside undo
+                if lastMove.endCol - lastMove.startCol == 2:
+                    # rook is currently at endCol-1, move it back to col 7
+                    self.board[lastMove.endRow][7] = lastMove.pieceMoved[0] + 'R'
+                    self.board[lastMove.endRow][lastMove.endCol-1] = '--'
+                else:
+                    # queenside undo: rook at endCol+1 back to col 0
+                    self.board[lastMove.endRow][0] = lastMove.pieceMoved[0] + 'R'
+                    self.board[lastMove.endRow][lastMove.endCol+1] = '--'
 
+            # restore previous enpassantPossible and castling rights
+            self.enpassantPossible = lastMove.enpassantPossible
+            if hasattr(lastMove, 'castlingRights'):
+                (self.whiteKingMoved, self.whiteRookAMoved, self.whiteRookHMoved,
+                 self.blackKingMoved, self.blackRookAMoved, self.blackRookHMoved) = lastMove.castlingRights
     def getValidMoves(self):
         moves =  self.getAllPossibleMoves()
 
@@ -305,7 +379,41 @@ class GameState():
                     moves.append(Move((r,c),(newRow,newCol),self.board))
                 elif self.board[newRow][newCol][0] != self.board[r][c][0]:
                     moves.append(Move((r,c),(newRow,newCol),self.board))
+        self.getCastleMoves(r, c, moves)            
 
+    def getCastleMoves(self, r, c, moves):
+        """
+        Add castling moves to moves list if allowed:
+        - king and involved rook haven't moved
+        - squares between king and rook are empty
+        - king is not in check, and squares king passes through are not under attack
+        """
+        if self.inCheck():
+            return  # cannot castle while in check
+
+        if self.whitetomove:
+            # white kingside
+            if (not self.whiteKingMoved and not self.whiteRookHMoved and
+                self.board[7][5] == '--' and self.board[7][6] == '--'):
+                # squares king passes through must not be under attack
+                if (not self.squareUnderAttack(7,5) and not self.squareUnderAttack(7,6)):
+                    moves.append(Move((7,4),(7,6),self.board))
+            # white queenside
+            if (not self.whiteKingMoved and not self.whiteRookAMoved and
+                self.board[7][1] == '--' and self.board[7][2] == '--' and self.board[7][3] == '--'):
+                if (not self.squareUnderAttack(7,3) and not self.squareUnderAttack(7,2)):
+                    moves.append(Move((7,4),(7,2),self.board))
+        else:
+            # black kingside
+            if (not self.blackKingMoved and not self.blackRookHMoved and
+                self.board[0][5] == '--' and self.board[0][6] == '--'):
+                if (not self.squareUnderAttack(0,5) and not self.squareUnderAttack(0,6)):
+                    moves.append(Move((0,4),(0,6),self.board))
+            # black queenside
+            if (not self.blackKingMoved and not self.blackRookAMoved and
+                self.board[0][1] == '--' and self.board[0][2] == '--' and self.board[0][3] == '--'):
+                if (not self.squareUnderAttack(0,3) and not self.squareUnderAttack(0,2)):
+                    moves.append(Move((0,4),(0,2),self.board))
 class Move():
     #map keys to values
     #key:value
