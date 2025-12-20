@@ -34,9 +34,10 @@ def main():
     playerClicks = [] #keep track of player clicks(two tuples:[(6,4),(4,4)])
     playerOne = True #white is human if true, else false
     playerTwo = False #black is human if true, else false
+    depth = 3
     while running:
         if (gs.whitetomove and not playerOne) or (not gs.whitetomove and not playerTwo):
-            AIMove = Apophis.findRandomMove(validMoves)
+            AIMove = Apophis.findBestMove(gs, validMoves, depth)
             gs.makeMove(AIMove)
             moveMade = True
             print(AIMove.getChessNotation())

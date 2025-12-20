@@ -34,12 +34,12 @@ class GameState():
 
     """Takes move as parameter and executes it, will not work for enpassant,castling,pawn promotion"""
     def makeMove(self,move):
-        move.enpassantPossible = self.enpassantPossible
-        move.castlingRights = (
-            self.whiteKingMoved, self.whiteRookAMoved, self.whiteRookHMoved,
-            self.blackKingMoved, self.blackRookAMoved, self.blackRookHMoved
-        )
-
+        if move:
+            move.enpassantPossible = self.enpassantPossible
+            move.castlingRights = (
+                self.whiteKingMoved, self.whiteRookAMoved, self.whiteRookHMoved,
+                self.blackKingMoved, self.blackRookAMoved, self.blackRookHMoved
+            )
         self.board[move.endRow][move.endCol] = move.pieceMoved
         self.board[move.startRow][move.startCol] = "--"
         self.moveLog.append(move)#log the move so we can undo it later
