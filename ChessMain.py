@@ -2,6 +2,7 @@
 
 import pygame as p
 import ChessEngine
+import Apophis
 
 p.init()
 WIDTH = HEIGHT = 512
@@ -31,35 +32,43 @@ def main():
     running = True
     sqSelected = ()#no square is selected, keep track of last click of the user(tuple (row,col))
     playerClicks = [] #keep track of player clicks(two tuples:[(6,4),(4,4)])
+    playerOne = True #white is human if true, else false
+    playerTwo = False #black is human if true, else false
     while running:
-        for e in p.event.get():
-            if e.type== p.QUIT:
-                running = False
-            elif e.type == p.MOUSEBUTTONDOWN:
-                location = p.mouse.get_pos()#(x,y)location of mouse
-                col = location[0]//SQ_SIZE
-                row = location[1]//SQ_SIZE
-                if sqSelected == (row,col):#user clicked same square twice
-                    sqSelected = () #deselect
-                    playerClicks = [] #clear player clicks
-                else:
-                    sqSelected = (row,col)
-                    playerClicks.append(sqSelected)#append for both first and second clicks
-                if len(playerClicks)==2:#after 2nd click
-                    move = ChessEngine.Move(playerClicks[0],playerClicks[1],gs.board)
-                    for i in range(len(validMoves)):
-                        if move == validMoves[i]:
-                            gs.makeMove(validMoves[i])
-                            moveMade = True
-                            print(move.getChessNotation())
-                            sqSelected = ()#reset user clicks
-                            playerClicks = []
-                    if not moveMade:
-                        playerClicks = [sqSelected]
-            elif e.type == p.KEYDOWN:
-                if e.key == p.K_z: #undo when z is pressed
-                    gs.undoMove()
-                    moveMade = True
+        if (gs.whitetomove and not playerOne) or (not gs.whitetomove and not playerTwo):
+            AIMove = Apophis.findRandomMove(validMoves)
+            gs.makeMove(AIMove)
+            moveMade = True
+            p.time.delay(500)
+        else:
+            for e in p.event.get():
+                if e.type== p.QUIT:
+                    running = False
+                elif e.type == p.MOUSEBUTTONDOWN:
+                    location = p.mouse.get_pos()#(x,y)location of mouse
+                    col = location[0]//SQ_SIZE
+                    row = location[1]//SQ_SIZE
+                    if sqSelected == (row,col):#user clicked same square twice
+                        sqSelected = () #deselect
+                        playerClicks = [] #clear player clicks
+                    else:
+                        sqSelected = (row,col)
+                        playerClicks.append(sqSelected)#append for both first and second clicks
+                    if len(playerClicks)==2:#after 2nd click
+                        move = ChessEngine.Move(playerClicks[0],playerClicks[1],gs.board)
+                        for i in range(len(validMoves)):
+                            if move == validMoves[i]:
+                                gs.makeMove(validMoves[i])
+                                moveMade = True
+                                print(move.getChessNotation())
+                                sqSelected = ()#reset user clicks
+                                playerClicks = []
+                        if not moveMade:
+                            playerClicks = [sqSelected]
+                elif e.type == p.KEYDOWN:
+                    if e.key == p.K_z: #undo when z is pressed
+                        gs.undoMove()
+                        moveMade = True
         if moveMade:
             validMoves = gs.getValidMoves()
             moveMade = False
