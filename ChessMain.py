@@ -39,6 +39,7 @@ def main():
             AIMove = Apophis.findRandomMove(validMoves)
             gs.makeMove(AIMove)
             moveMade = True
+            print(AIMove.getChessNotation())
             p.time.delay(500)
         else:
             for e in p.event.get():
@@ -68,6 +69,8 @@ def main():
                 elif e.type == p.KEYDOWN:
                     if e.key == p.K_z: #undo when z is pressed
                         gs.undoMove()
+                        if not playerOne or not playerTwo:
+                            gs.undoMove()
                         moveMade = True
         if moveMade:
             validMoves = gs.getValidMoves()
@@ -75,6 +78,9 @@ def main():
         drawGameState(screen,gs,sqSelected)
         clock.tick(MAX_FPS)
         p.display.flip()
+        if gs.checkmate or gs.stalemate:
+            p.time.delay(3000)
+            running = False
 
 """ Responsible for all the graphics within a current game state"""
 
