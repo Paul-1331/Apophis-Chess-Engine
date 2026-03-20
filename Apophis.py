@@ -30,7 +30,7 @@ def findBestMove(gs, validMoves, depth):
     global nextMove
     nextMove = None
     minimax(gs, validMoves, depth, -CHECKMATE, CHECKMATE, gs.whitetomove)
-    return nextMove
+    return nextMove if nextMove else findRandomMove(validMoves)
 
 def minimax(gs, validMoves, depth, alpha, beta, whiteToMove):
     global nextMove
