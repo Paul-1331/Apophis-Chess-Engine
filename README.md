@@ -60,10 +60,10 @@ pip install -r requirements.txt
 ### 5. Run the project
 
 ```bash
-python main.py
+python ChessMain.py
 ```
 
-Replace `main.py` with your actual main file if it is different.
+Replace `ChessMain.py` with your actual main file if it is different.
 
 ## Notes
 
