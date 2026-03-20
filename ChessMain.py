@@ -1,5 +1,4 @@
 """ Main driver file responsible for user input and displaying current gamestate object"""
-
 import pygame as p
 import ChessEngine
 import Apophis
