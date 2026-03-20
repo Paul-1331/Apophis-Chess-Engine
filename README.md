@@ -14,71 +14,91 @@ A chess project built with Python and Pygame.
 ```bash
 git clone <your-repository-url>
 cd Apophis
+```
 
 ### 2. Create a virtual environment
-Linux / macOS
+
+#### Linux / macOS
+
+```bash
 python3 -m venv .venv
-Windows
+```
+
+#### Windows
+
+```bash
 python -m venv .venv
+```
+
 ### 3. Activate the virtual environment
-Linux / macOS
+
+#### Linux / macOS
+
+```bash
 source .venv/bin/activate
-Windows PowerShell
+```
+
+#### Windows PowerShell
+
+```powershell
 .venv\Scripts\Activate.ps1
-Windows CMD
+```
+
+#### Windows CMD
+
+```cmd
 .venv\Scripts\activate
+```
+
 ### 4. Install dependencies
+
+```bash
 pip install --upgrade pip
 pip install -r requirements.txt
+```
+
 ### 5. Run the project
+
+```bash
 python main.py
+```
 
-Replace main.py with your actual main file if it is different.
+Replace `main.py` with your actual main file if it is different.
 
-Notes
+## Notes
 
-Always activate the virtual environment before running the project.
+- Always activate the virtual environment before running the project.
+- If `python3` does not work on your system, try `python` instead.
+- Do not upload the `.venv` folder to GitHub.
 
-If python3 does not work on your system, try python instead.
-
-Do not upload the .venv folder to GitHub.
-
-Updating Dependencies
+## Updating Dependencies
 
 If you add a new package later, update the dependency file with:
 
+```bash
 pip freeze > requirements.txt
-Recommended .gitignore
+```
 
-Make sure your .gitignore contains:
+## Recommended `.gitignore`
 
-.venv/
-__pycache__/
-*.pyc
-Project Structure
-Apophis/
-├── main.py
-├── requirements.txt
-├── README.md
-└── ...
-License
-
-Add a license here if you want to make the project open source.
-
-
-And copy this entire file as your `.gitignore`:
+Make sure your `.gitignore` contains:
 
 ```gitignore
 .venv/
 __pycache__/
 *.pyc
+```
 
-After setting up your virtual environment and installing packages, run this once inside the project:
+## Project Structure
 
-pip freeze > requirements.txt
+```text
+Apophis/
+├── main.py
+├── requirements.txt
+├── README.md
+└── ...
+```
 
-Then replace:
+## License
 
-<your-repository-url> with your actual GitHub link
-
-main.py if your entry file has a different name
+Add a license here if you want to make the project open source.
