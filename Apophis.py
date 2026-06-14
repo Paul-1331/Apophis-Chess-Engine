@@ -25,6 +25,7 @@ def scoreMaterial(board):
 CHECKMATE = 100000
 STALEMATE = 0
 DEPTH = 3
+nextMove = None
 
 def findBestMove(gs, validMoves, depth):
     global nextMove
